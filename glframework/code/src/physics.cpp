@@ -5,11 +5,15 @@
 #define NPARTICLES 252
 const float quadScale = 0.5f;
 using v3 = glm::vec3;
+float ke = 1;
+float kd = 1;
+float OD = 3.f;
 #define MASS 1.F//F
 struct particle {
 	v3 P;
 	v3 Po;
-
+	v3 V;
+	v3 Vo;
 };
 
 
@@ -44,21 +48,27 @@ void GUI() {
 	}
 }
 
+v3 spring(particle P1, particle P2) {
+	v3 Vector12 = P1.P - P2.P;
+	return -(ke*(glm::length(Vector12) - OD) + kd*(P1.V - P2.V)*glm::normalize(Vector12))*glm::normalize(Vector12);
+}
+
+
 void PhysicsInit() {
 	int localZ = -5;
 	for (int i = 0; i < NPARTICLES; ++i) {
 		for (int j = 0; j < 3; ++j) {
 			switch (j) {
-			case 0:	arrayParticles[i * 3 + j] = -3.f+(i%14)*quadScale;
-				arrayStructParticles[i].P.x = -3.f + (i % 14)*quadScale;
+			case 0:	arrayParticles[i * 3 + j] = -OD +(i%14)*quadScale;
+				arrayStructParticles[i].P.x = -OD + (i % 14)*quadScale;
 				if (i % 14 == 0)
 					++localZ;
 				break;
 			case 1:arrayParticles[i * 3 + j] = 9;
 				arrayStructParticles[i].P.y = 9;
 				break;
-			case 2:arrayParticles[i * 3 + j] = -2.f+(localZ)*quadScale;
-				arrayStructParticles[i].P.z = -2.f + (localZ)*quadScale;;
+			case 2:arrayParticles[i * 3 + j] = -OD +(localZ)*quadScale;
+				arrayStructParticles[i].P.z = -OD + (localZ)*quadScale;;
 				break;
 			}
 		}
@@ -78,14 +88,17 @@ void PhysicsUpdate(float dt) {
 			case 0:
 				arrayStructParticles[i].P.x += (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) + (sumFuerzas.x / MASS)*glm::pow(dt, 2);
 				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.x;
+				arrayStructParticles[i].V.x = (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) / dt;
 				break;
 			case 1:
 				arrayStructParticles[i].P.y += (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) + (sumFuerzas.y / MASS)*glm::pow(dt, 2);
 				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.y;
+				arrayStructParticles[i].V.y = (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) / dt;
 				break;
 			case 2:
 				arrayStructParticles[i].P.z += (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) + (sumFuerzas.z / MASS)*glm::pow(dt, 2);
 				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.z;
+				arrayStructParticles[i].V.z = (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) / dt;
 				break;
 			}
 		}
