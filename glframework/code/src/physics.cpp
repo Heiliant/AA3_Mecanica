@@ -14,6 +14,7 @@ struct particle {
 	v3 Po;
 	v3 V;
 	v3 Vo;
+	v3 F;
 };
 
 
@@ -73,6 +74,7 @@ void PhysicsInit() {
 			}
 		}
 		arrayStructParticles[i].Po = arrayStructParticles[i].P;
+		arrayStructParticles[i].F = { 0, 0, 0 };
 	}
 	ClothMesh::updateClothMesh(arrayParticles);
 }
@@ -82,29 +84,56 @@ void PhysicsUpdate(float dt) {
 	for (int i = 1; i < NPARTICLES; ++i) {
 		v3 aux = arrayStructParticles[i].P;
 		if (i!=13){
-		for (int j = 0; j < 3; ++j) {
-			v3 sumFuerzas = { 0, MASS*(-9.81), 0 };
-			switch (j) {
-			case 0:
-				arrayStructParticles[i].P.x += (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) + (sumFuerzas.x / MASS)*glm::pow(dt, 2);
-				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.x;
-				arrayStructParticles[i].V.x = (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) / dt;
-				break;
-			case 1:
-				arrayStructParticles[i].P.y += (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) + (sumFuerzas.y / MASS)*glm::pow(dt, 2);
-				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.y;
-				arrayStructParticles[i].V.y = (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) / dt;
-				break;
-			case 2:
-				arrayStructParticles[i].P.z += (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) + (sumFuerzas.z / MASS)*glm::pow(dt, 2);
-				arrayParticles[i * 3 + j] = arrayStructParticles[i].P.z;
-				arrayStructParticles[i].V.z = (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) / dt;
-				break;
+			for (int j = 0; j < 3; ++j) {
+				arrayStructParticles[i].F += v3{ 0, MASS*(-9.81), 0};
+				switch (j) {
+				case 0:
+					arrayStructParticles[i].P.x += (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) + (arrayStructParticles[i].F.x / MASS)*glm::pow(dt, 2);
+					arrayParticles[i * 3 + j] = arrayStructParticles[i].P.x;
+					arrayStructParticles[i].V.x = (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) / dt;
+					break;
+				case 1:
+					arrayStructParticles[i].P.y += (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) + (arrayStructParticles[i].F.y / MASS)*glm::pow(dt, 2);
+					arrayParticles[i * 3 + j] = arrayStructParticles[i].P.y;
+					arrayStructParticles[i].V.y = (arrayStructParticles[i].P.y - arrayStructParticles[i].Po.y) / dt;
+					break;
+				case 2:
+					arrayStructParticles[i].P.z += (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) + (arrayStructParticles[i].F.z / MASS)*glm::pow(dt, 2);
+					arrayParticles[i * 3 + j] = arrayStructParticles[i].P.z;
+					arrayStructParticles[i].V.z = (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) / dt;
+					break;
+				}
+			}
+			arrayStructParticles[i].Po = aux;
+		}
+		arrayStructParticles[i].P= spring(arrayStructParticles[i], arrayStructParticles[i + 1]);
+	}
+
+	//ESTOESTÁAMEDIASAAAAAAAAAAAAAAAAAAAA
+	for (int i = 0; i < NPARTICLES; ++i) {
+		if (i < 14) {
+			if (i == 0) {
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 1]);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 14]);
+			}
+			else if (i == 13) {
+
+			}
+			else {
+
 			}
 		}
-		arrayStructParticles[i].Po = aux;
+		else if (i >= (NPARTICLES - 14)) {
+
+		}
+		else if (i % 14 == 0){
+
+		}
+		else if (i % 14 == 13) {
+
+		}
 	}
-	}
+
 	ClothMesh::updateClothMesh(arrayParticles);
 }
 
