@@ -6,11 +6,11 @@
 #define NPARTICLES 252
 const float quadScale = 0.5f;
 using v3 = glm::vec3;
-float ke = 1;
+float ke = 20;
 float kd = 1;
-float OD = 0.5/2.f;
+float OD = 0.5f;
 float gravity = -9.85f;
-#define MASS 1.F//F
+#define MASS 1.f//F
 struct particle {
 	v3 P;
 	v3 Po;
@@ -83,7 +83,7 @@ void PhysicsInit() {
 
 void PhysicsUpdate(float dt) {
 
-	for (int i = 1; i < NPARTICLES; ++i) {
+	for (int i = 14; i < NPARTICLES; ++i) {
 		v3 aux = arrayStructParticles[i].P;
 		if (i!=13){
 			for (int j = 0; j < 3; ++j) {
@@ -159,8 +159,8 @@ void PhysicsUpdate(float dt) {
 				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 			}
 			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) + 
-					spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) 
+				+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 			}
 		}
 		else if (i >= (NPARTICLES - 14)) {
@@ -171,28 +171,27 @@ void PhysicsUpdate(float dt) {
 				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 			}
 			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) + 
-					spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
+				+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 			}
 		}
 		else if (i % 14 == 0) {
 			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 		}
 		else if (i % 14 == 13) {
 			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 		}
 		else {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) + 
-				spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) +
-				spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) + 
-				spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) 
+			+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) 
+			+ spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2))) 
+			+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
 		}
 	}
 	////////////////////////////////////////////////////BENDING////////////////////////////////////////////////////
 	for (int i = 0; i < NPARTICLES; ++i) {
-		if (((int)i / 14 % 2) == 0) {
 			if (i < 14) {
 				if (i == 0) {
 					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2*OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
@@ -207,29 +206,41 @@ void PhysicsUpdate(float dt) {
 			}
 			else if (i >= (NPARTICLES - 14)) {
 				if (i == NPARTICLES - 14) {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
 				}
 				else if (i == NPARTICLES - 1) {
 					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
 				}
 				else {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD)
-						+ spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+					if (!(i % 14 + 2>14))
+						arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+					if (!(i % 14 - 2<0))
+						arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
 				}
 			}
 			else if (i % 14 == 0) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD)
-					+ spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+				if(!(i%14+2>14))
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
 			}
 			else if (i % 14 == 13) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD)
-					+ spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+				if (!(i % 14 - 2<0))
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
 			}
 			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD)
-					+ spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD); 
+				if(!(i % 14 + 2>14))
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+				if(!(i % 14 - 2<0))
+					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
 			}
-		}
 	}
 	ClothMesh::updateClothMesh(arrayParticles);
 }
