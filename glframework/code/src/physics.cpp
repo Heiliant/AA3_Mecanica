@@ -8,10 +8,34 @@ const float quadScale = 0.5f;
 using v3 = glm::vec3;
 float ke = 1000;
 float kd = 17;
-float OD = 0.35f;
+float OD = 0.4f;
 float gravity = -9.85f;
-float elasticityCof = 0.5;
-float frictionCof = 0;
+
+namespace GUIvars {
+	bool show_test_window = false;
+	bool PlaySimulation = true;
+	bool show = true;
+	static float elasticityCof = 0.5;
+	static float frictionCof = 0.5;
+	bool useSphereCollider = true;
+	float SphX = 1.0f;
+	float SphY = 1.0f;
+	float SphZ = 1.0f;
+	float SphPosition[3] = { SphX, SphY, SphZ };
+	float SphRadius = 1.f;
+	bool useGravity = true;
+	float AX = 0.0f;
+	float AY = -9.81f;
+	float AZ = 0.0f;
+	static float Gacceleration[3] = { AX, AY, AZ };
+	bool colisionEsfera = true;
+
+	//float SpherePos[3]{ 0, 2, 0 };
+	//float SphereRad = 2.5f;
+	extern bool renderSphere;
+	extern bool renderCapsule;
+}
+
 #define MASS 1.f//F
 struct particle {
 	v3 P;
@@ -50,6 +74,13 @@ namespace ClothMesh {
 	extern void drawClothMesh();
 }
 
+namespace Sphere {
+	extern void setupSphere(glm::vec3 pos = { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, float radius = GUIvars::SphRadius);
+	extern void cleanupSphere();
+	extern void updateSphere(glm::vec3 pos = glm::vec3(&GUIvars::SphPosition[0], &GUIvars::SphPosition[1], &GUIvars::SphPosition[2]), float radius = GUIvars::SphRadius);
+	extern void drawSphere();
+}
+
 bool show_test_window = false;
 void GUI() {
 	bool show = true;
@@ -76,6 +107,7 @@ v3 spring(particle P1, particle P2, float originalD=OD) {
 	return -(ke*(glm::length(Vector12) - originalD) + kd*glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
 }
 
+
 //COLISIONES PLANO
 float planeD(glm::vec3 normal, glm::vec3 puntoP) {
 	return -glm::dot(normal, puntoP);
@@ -88,15 +120,98 @@ bool hasCollided(particle particula, glm::vec3 normal, float d) {
 void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 	float d = planeD(normal, planeSpot);
 
-	particula.P = particula.P - (1+elasticityCof) * (glm::dot(normal, particula.P) + d)*normal;
+	particula.Po = particula.Po - (1 + GUIvars::elasticityCof) * (glm::dot(normal, particula.Po) + d)*normal;
 
-	particula.V = particula.V - (1+elasticityCof) * glm::dot(normal, particula.V)*normal;
+	particula.P = particula.P - (1+ GUIvars::elasticityCof) * (glm::dot(normal, particula.P) + d)*normal;
 
-	glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
-	glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
+	//particula.V = particula.V - (1+ GUIvars::elasticityCof) * glm::dot(normal, particula.V)*normal;
 
-	particula.V -= frictionCof*velocidadTangencial;
+	//glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
+	//glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
+
+	//particula.V -= GUIvars::frictionCof*velocidadTangencial;
 }
+
+
+//COLISIONES ESFERA
+glm::vec3 colisionSpot(particle particula, glm::vec3 SpherePosition, float Sphradius) {
+	float c =
+		glm::pow(SpherePosition.x, 2) - 2 * particula.Po.x*SpherePosition.x + glm::pow(particula.Po.x, 2) +
+		glm::pow(SpherePosition.y, 2) - 2 * particula.Po.y*SpherePosition.y + glm::pow(particula.Po.y, 2) +
+		glm::pow(SpherePosition.z, 2) - 2 * particula.Po.z*SpherePosition.z + glm::pow(particula.Po.z, 2)
+		- glm::pow(Sphradius, 2);
+
+	c = glm::pow(glm::pow(particula.P.x - particula.Po.x, 2) + glm::pow(particula.P.y - particula.Po.y, 2) + glm::pow(particula.P.z - particula.Po.z, 2), 2);
+
+	float b =
+		2 * (SpherePosition.x*particula.P.x - SpherePosition.x*particula.Po.x - particula.Po.x*particula.P.x + glm::pow(particula.Po.x, 2)) +
+		2 * (SpherePosition.y*particula.P.y - SpherePosition.y*particula.Po.y - particula.Po.y*particula.P.y + glm::pow(particula.Po.y, 2)) +
+		2 * (SpherePosition.z*particula.P.z - SpherePosition.z*particula.Po.z - particula.Po.z*particula.P.z + glm::pow(particula.Po.z, 2));
+	b = 2 * ((particula.P.x - particula.Po.x) + (particula.P.y - particula.Po.y) + (particula.P.z - particula.Po.z)*-1);
+
+
+	float a =
+		glm::pow(particula.P.x, 2) - 2 * particula.P.x*particula.Po.x + glm::pow(particula.Po.x, 2) +
+		glm::pow(particula.P.y, 2) - 2 * particula.P.y*particula.Po.y + glm::pow(particula.Po.y, 2) +
+		glm::pow(particula.P.z, 2) - 2 * particula.P.z*particula.Po.z + glm::pow(particula.Po.z, 2);
+
+	a = glm::pow((particula.Po.x - SpherePosition.x), 2) + pow((particula.Po.y - SpherePosition.y), 2) + pow((particula.Po.z - SpherePosition.z), 2) -
+		glm::pow(Sphradius, 2) + 2 * ((particula.Po.x - SpherePosition.x) + (particula.Po.y - SpherePosition.y) + (particula.Po.z - SpherePosition.z));
+
+
+	float alphaOne = (-b + glm::sqrt(glm::pow(b, 2) - 4 * (a*c))) / (2 * a);
+	float alphaTwo = (-b - glm::sqrt(glm::pow(b, 2) - 4 * (a*c))) / (2 * a);
+
+	if (alphaOne<alphaTwo) {
+		return
+		{ particula.Po.x + (-particula.P.x + particula.Po.x)*alphaOne,
+			particula.Po.y + (-particula.P.y + particula.Po.y)*alphaOne,
+			particula.Po.z + (-particula.P.z + particula.Po.z)*alphaOne
+		};
+
+	}
+	else {
+		return
+		{ particula.Po.x + (-particula.P.x + particula.Po.x)*alphaTwo,
+			particula.Po.y + (-particula.P.y + particula.Po.y)*alphaTwo,
+			particula.Po.z + (-particula.P.z + particula.Po.z)*alphaTwo
+		};
+	}
+
+}
+
+glm::vec3 RSphere(particle particula, float alpha) {
+	//Calculo la R que no es R de radio, creo que es R de recta, pero no estoy muy seguro, yo solo sigo lo que hice sobre papel.
+	glm::vec3 R;
+	R.x = (particula.Po.x + (particula.P.x - particula.Po.x)*alpha);
+	R.y = (particula.Po.y + (particula.P.y - particula.Po.y)*alpha);
+	R.z = (particula.Po.z + (particula.P.z - particula.Po.z)*alpha);
+	return R;
+}
+
+glm::vec3 NormalSphere(glm::vec3 R, glm::vec3 SpherePosition) {
+	//Calculo la normal del plano del rebote de la esfera.
+	glm::vec3 N;
+	float modulo;
+	N.x = R.x - SpherePosition.x;
+	N.y = R.y - SpherePosition.y;
+	N.z = R.z - SpherePosition.z;
+	modulo = sqrt(pow(N.x, 2) + pow(N.y, 2) + pow(N.z, 2));
+	N.x /= modulo;
+	N.y /= modulo;
+	N.z /= modulo;
+	return N;
+}
+
+float comprobanteEsfera(glm::vec3 R, glm::vec3 esfera, float alpha) {
+	return sqrt(pow((R.x - esfera.x), 2) + pow((R.y - esfera.y), 2) + pow((R.z - esfera.z), 2));
+}
+
+bool hasCollidedSphere(particle particula, glm::vec3 SpherePosition, float Sphradius) {
+	//Con esta función compruebo si la partícula ha colisionado con la esfera.
+	return (glm::distance(particula.P, SpherePosition) - Sphradius) <= 0;
+}
+
 
 
 void FuncionUpdate(float dt) {
@@ -132,6 +247,15 @@ void FuncionUpdate(float dt) {
 				rebote(arrayStructParticles[i], a, planePoint[aux2]);
 			}
 			++aux2;
+		}		
+		if (GUIvars::renderSphere) {
+			//Colisión esfera.
+			if (hasCollidedSphere(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius)) {
+				glm::vec3 collisionSpot = colisionSpot(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius);
+
+				glm::vec3 planeNormal = (collisionSpot - glm::vec3{ GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] });
+				rebote(arrayStructParticles[i], planeNormal, collisionSpot);
+			}
 		}
 	}
 

@@ -3,18 +3,37 @@
 #include <glm\gtc\matrix_transform.hpp>
 
 
+namespace GUIvars {
+	extern float CapposicioinicialA[3];
+	extern float CapposicioinicialB[3];
+
+	extern bool PlaySimulation;
+	extern int emitRate;
+
+	//extern float SpherePos[3];
+	//extern float SphereRad;
+	extern float SphPosition[3];
+	extern float SphRadius;
+
+	bool renderSphere = true;
+	bool renderCapsule = true;
+	bool renderParticles = true;
+	bool renderCloth = false;
+	bool renderCube = false;
+}
 
 // Boolean variables allow to show/hide the primitives
-bool renderSphere = false;
+bool renderSphere = true;
 bool renderCapsule = false;
 bool renderParticles = false;
 bool renderCloth = true;
 bool renderCube = false;
 
+
 namespace Sphere {
-	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f), float radius = 1.f);
+	extern void setupSphere(glm::vec3 pos = { GUIvars::SphPosition[0],  GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, float radius = GUIvars::SphRadius);
 	extern void cleanupSphere();
-	extern void updateSphere(glm::vec3 pos, float radius = 1.f);
+	extern void updateSphere(glm::vec3 pos = glm::vec3(&GUIvars::SphPosition[0], &GUIvars::SphPosition[1], &GUIvars::SphPosition[2]), float radius = GUIvars::SphRadius);
 	extern void drawSphere();
 }
 namespace Capsule {
