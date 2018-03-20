@@ -192,56 +192,83 @@ void PhysicsUpdate(float dt) {
 	}
 	////////////////////////////////////////////////////BENDING////////////////////////////////////////////////////
 	for (int i = 0; i < NPARTICLES; ++i) {
-			if (i < 14) {
-				if (i == 0) {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2*OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
-				}
-				else if (i == 13) {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
-				}
-				else {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD)
-						+ spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
-				}
-			}
-			else if (i >= (NPARTICLES - 14)) {
-				if (i == NPARTICLES - 14) {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
-				}
-				else if (i == NPARTICLES - 1) {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
-				}
-				else {
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
-					if (!(i % 14 + 2>14))
-						arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
-					if (!(i % 14 - 2<0))
-						arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
-				}
-			}
-			else if (i % 14 == 0) {
-
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
-				if(!(i%14+2>14))
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
-			}
-			else if (i % 14 == 13) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
-				if (!(i % 14 - 2<0))
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
-			}
-			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD); 
-				if(!(i % 14 + 2>14))
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
-				if(!(i % 14 - 2<0))
-					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
-			}
+		if (i % 14 == 0 || i % 14 == 1) {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+		}
+		else if (i % 14 == 13 || i % 14 == 12) {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+		}
+		else {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+		}
 	}
+
+	for (int i = 0; i < NPARTICLES; ++i) {
+		if (static_cast<int>(i / 14) == 0 || static_cast<int>(i / 14) == 1) {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+		}
+		else if (static_cast<int>(i / 14) == 17 || static_cast<int>(i / 14) == 16) {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+		}
+		else {
+			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+		} 
+		if (i % 14 == 13) {
+			std::cout << std::endl;
+		}
+	}
+	//for (int i = 0; i < NPARTICLES; ++i) {
+	//		if (i < 14) {
+	//			if (i == 0) {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2*OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//			}
+	//			else if (i == 13) {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//			}
+	//			else {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//				if (!(i % 14 + 2>14)) 
+	//					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+	//					+//ring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+	//			}
+	//		}
+	//		else if (i >= (NPARTICLES - 14)) {
+	//			if (i == NPARTICLES - 14) {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+	//			}
+	//			else if (i == NPARTICLES - 1) {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+	//			}
+	//			else {
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+	//				if (!(i % 14 + 2>14))
+	//					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+	//				if (!(i % 14 - 2<0))
+	//					arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+	//			}
+	//		}
+	//		else if (i % 14 == 0) {
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+	//			if(!(i%14+2>14))
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//		}
+	//		else if (i % 14 == 13) {
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+	//			if (!(i % 14 - 2<0))
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//		}
+	//		else {
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD); 
+	//			if(!(i % 14 + 2>14))
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+	//			if(!(i % 14 - 2<0))
+	//				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+	//			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+	//		}
+	//}
 	ClothMesh::updateClothMesh(arrayParticles);
 }
 
