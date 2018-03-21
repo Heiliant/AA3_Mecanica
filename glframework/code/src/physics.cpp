@@ -169,36 +169,21 @@ void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 
 //COLISIONES ESFERA
 glm::vec3 colisionSpot(particle particula, glm::vec3 SpherePosition, float Sphradius) {
-	float c =
-		glm::pow(SpherePosition.x, 2) - 2 * particula.Po.x*SpherePosition.x + glm::pow(particula.Po.x, 2) +
-		glm::pow(SpherePosition.y, 2) - 2 * particula.Po.y*SpherePosition.y + glm::pow(particula.Po.y, 2) +
-		glm::pow(SpherePosition.z, 2) - 2 * particula.Po.z*SpherePosition.z + glm::pow(particula.Po.z, 2)
-		- glm::pow(Sphradius, 2);
+	float a = glm::pow(particula.Po.x, 2) + glm::pow(particula.P.x, 2) - 2 * (particula.Po.x*particula.P.x)
+		+ glm::pow(particula.Po.y, 2) + glm::pow(particula.P.y, 2) - 2 * (particula.Po.y*particula.P.y)
+		+ glm::pow(particula.Po.z, 2) + glm::pow(particula.P.z, 2) - 2 * (particula.Po.z*particula.P.z);
 
-	c = glm::pow(glm::pow(particula.P.x - particula.Po.x, 2) + glm::pow(particula.P.y - particula.Po.y, 2) + glm::pow(particula.P.z - particula.Po.z, 2), 2);
+	float b = 2 * (particula.Po.x*particula.P.x - glm::pow(particula.Po.x, 2) - particula.P.x*SpherePosition.x + particula.Po.x*SpherePosition.x
+		+ particula.Po.y*particula.P.y - glm::pow(particula.Po.y, 2) - particula.P.y*SpherePosition.y + particula.Po.y*SpherePosition.y
+		+ particula.Po.z*particula.P.z - glm::pow(particula.Po.z, 2) - particula.P.z*SpherePosition.z + particula.Po.z*SpherePosition.z);
 
-	float b =
-		2 * (SpherePosition.x*particula.P.x - SpherePosition.x*particula.Po.x - particula.Po.x*particula.P.x + glm::pow(particula.Po.x, 2)) +
-		2 * (SpherePosition.y*particula.P.y - SpherePosition.y*particula.Po.y - particula.Po.y*particula.P.y + glm::pow(particula.Po.y, 2)) +
-		2 * (SpherePosition.z*particula.P.z - SpherePosition.z*particula.Po.z - particula.Po.z*particula.P.z + glm::pow(particula.Po.z, 2));
-	b = 2 * ((particula.P.x - particula.Po.x) + (particula.P.y - particula.Po.y) + (particula.P.z - particula.Po.z)*-1);
+	float c = -2 * particula.Po.x*SpherePosition.x + glm::pow(particula.Po.x, 2) + glm::pow(SpherePosition.x, 2)
+		- 2 * particula.Po.y*SpherePosition.y + glm::pow(particula.Po.y, 2) + glm::pow(SpherePosition.y, 2)
+		- 2 * particula.Po.z*SpherePosition.z + glm::pow(particula.Po.z, 2) + glm::pow(SpherePosition.z, 2) - glm::pow(Sphradius, 2);
 
+	double alphaOne = (-b + glm::sqrt(glm::pow(b, 2) - 4 * a*c)) / (2 * a);
+	double alphaTwo = (-b - glm::sqrt(glm::pow(b, 2) - 4 * a*c)) / (2 * a);
 
-	float a =
-		glm::pow(particula.P.x, 2) - 2 * particula.P.x*particula.Po.x + glm::pow(particula.Po.x, 2) +
-		glm::pow(particula.P.y, 2) - 2 * particula.P.y*particula.Po.y + glm::pow(particula.Po.y, 2) +
-		glm::pow(particula.P.z, 2) - 2 * particula.P.z*particula.Po.z + glm::pow(particula.Po.z, 2);
-
-	a = glm::pow((particula.Po.x - SpherePosition.x), 2) + pow((particula.Po.y - SpherePosition.y), 2) + pow((particula.Po.z - SpherePosition.z), 2) -
-		glm::pow(Sphradius, 2) + 2 * ((particula.Po.x - SpherePosition.x) + (particula.Po.y - SpherePosition.y) + (particula.Po.z - SpherePosition.z));
-
-	double cuerpo = glm::pow(b, 2) - 4 * a*c;
-
-	if (cuerpo<0) {
-		cuerpo *= -1;
-	}
-	double alphaOne = (-b + glm::sqrt(cuerpo)) / (2 * a);
-	double alphaTwo = (-b - glm::sqrt(cuerpo)) / (2 * a);
 
 	if (alphaOne<alphaTwo) {
 		return
