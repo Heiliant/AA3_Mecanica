@@ -8,7 +8,7 @@ const float quadScale = 0.5f;
 using v3 = glm::vec3;
 float ke = 1000;
 float kd = 17;
-float OD = 0.4f;
+float OD = 0.5f;
 float gravity = -9.85f;
 
 namespace GUIvars {
@@ -100,6 +100,9 @@ namespace Sphere {
 }
 
 bool show_test_window = false;
+
+void PhysicsInit();
+
 void GUI() {
 
 	ImGui::Begin("Physics Parameters", &GUIvars::show, 0);
@@ -108,6 +111,7 @@ void GUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		ImGui::Checkbox("Play Simulation", &GUIvars::PlaySimulation);//CHECKBOX
 		if (ImGui::Button("Reset Simulation")) {
+			PhysicsInit();
 		}
 		ImGui::InputFloat("Reset time", &GUIvars::ResetTime);
 		ImGui::InputFloat3("Gravity acceleration", GUIvars::Gravity);
@@ -127,63 +131,6 @@ void GUI() {
 			ImGui::InputFloat("Elasticity Coef", &GUIvars::eCo);
 			ImGui::InputFloat("Friction Coef", &GUIvars::fCo);
 		}
-
-		//	if (ImGui::TreeNode("Emitter")) {
-		//		ImGui::Text("Emitter Rate");
-		//		ImGui::InputInt("Emitter Rate", &GUIvars::emitRate);
-		//		//if (PlaySimulation) {		comprobacio de si cambia, spoiler: si que ho fa
-		//		//}
-		//		ImGui::InputInt("Particle Life", &GUIvars::particleLife);
-		//		//if (PlaySimulation) {   comprobacio de si cambia, spoiler: si que ho fa
-		//		//}
-
-		//		ImGui::RadioButton("Fountain", &GUIvars::modo, 0); ImGui::SameLine(); ImGui::RadioButton("Cascade", &GUIvars::modo, 1); //FOUNTAIN OR CASCADE
-		//		if (GUIvars::modo == 0) {
-		//			ImGui::Text("Fountain Pos"); //BOX (VEC3) 
-		//			ImGui::InputFloat3("Fountain Pos", GUIvars::Fposicioinicial);  //Tots els parametres de InputFloat3 o Input Int t els canvia desde la UI
-		//			if (ImGui::InputFloat3("Fountain Dir", GUIvars::Fvelocitatinicial))
-		//				ImGui::InputFloat("Fountain Angle", &GUIvars::FountainAngle);
-		//		}
-		//		if (GUIvars::modo == 1) {
-		//			ImGui::Text("Cascade Pos"); //BOX (VEC3) 
-		//			ImGui::InputFloat3("Cascade PosA", GUIvars::CposicioinicialA);
-		//			ImGui::InputFloat3("Cascade PosB", GUIvars::CposicioinicialB);
-		//			ImGui::InputFloat3("Cascade Velocity", GUIvars::Cvelocitatinicial);
-		//		}
-		//		ImGui::InputFloat("Fountain Angle", &GUIvars::FountainAngle);
-		//		ImGui::TreePop();
-		//	}
-
-
-		//	if (ImGui::TreeNode("Elasticity & Friction")) {			//ELASTICITY &FRICTION
-		//		ImGui::InputFloat("Elasticity Coefficient", &GUIvars::elasticityCof);
-		//		ImGui::InputFloat("Friction Coefficient", &GUIvars::frictionCof);
-		//		ImGui::TreePop();
-		//	}
-
-		//	if (ImGui::TreeNode("Colliders")) {						//COLLIDERS
-		//		ImGui::Checkbox("Use Sphere Collider", &GUIvars::renderSphere);
-
-		//		if (ImGui::InputFloat3("Sphere Position", GUIvars::SpherePos) || ImGui::InputFloat("Sphere Radius", &GUIvars::SphereRad)) {
-		//			Sphere::setupSphere({ GUIvars::SpherePos[0], GUIvars::SpherePos[1], GUIvars::SpherePos[2] }, GUIvars::SphereRad);
-		//		}
-		//		ImGui::Checkbox("Use Capsule Collider", &GUIvars::renderCapsule);
-		//		if (ImGui::InputFloat3("Capsule Position A", GUIvars::CapposicioinicialA) || ImGui::InputFloat3("Capsule Position B", GUIvars::CapposicioinicialB) || ImGui::InputFloat("Capsule Radius", &GUIvars::CapRadius)) {
-		//			Capsule::setupCapsule({ GUIvars::CapposicioinicialA[0], GUIvars::CapposicioinicialA[1], GUIvars::CapposicioinicialA[2] },
-		//			{ GUIvars::CapposicioinicialB[0], GUIvars::CapposicioinicialB[1] ,GUIvars::CapposicioinicialB[2] }, GUIvars::CapRadius);
-		//		}
-
-		//		ImGui::TreePop();
-		//	}
-
-		//	if (ImGui::TreeNode("Forces")) {     //FORCES
-		//		ImGui::Checkbox("Use Gravity", &GUIvars::useGravity);
-		//		ImGui::InputFloat3("Gravity Accel", GUIvars::Gacceleration);
-		//		ImGui::TreePop();
-		//	}
-		//}
-		//// .........................
-
 		ImGui::End();
 	}
 }
@@ -330,7 +277,7 @@ void FuncionUpdate(float dt) {
 		v3 aux = arrayStructParticles[i].P;
 		if (i != 13) {
 			for (int j = 0; j < 3; ++j) {
-				arrayStructParticles[i].F += v3{ 0, MASS*(gravity), 0 };
+				arrayStructParticles[i].F += v3{ MASS*GUIvars::Gravity[0], MASS*GUIvars::Gravity[1], MASS*GUIvars::Gravity[2] };
 				switch (j) {
 				case 0:
 					arrayStructParticles[i].P.x += (arrayStructParticles[i].P.x - arrayStructParticles[i].Po.x) + (arrayStructParticles[i].F.x / MASS)*glm::pow(dt, 2);
@@ -358,8 +305,6 @@ void FuncionUpdate(float dt) {
 	}
 
 }
-
-
 
 void Structural() {
 	////////////////////////////////////////////////////STRUCTURAL////////////////////////////////////////////////////
@@ -478,21 +423,28 @@ void Bending() {
 }
 
 
+float RandomFloat(float a, float b) {
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = b - a;
+	float r = random * diff;
+	return a + r;
+}
+
 void PhysicsInit() {
 	int localZ = -5;
 	for (int i = 0; i < NPARTICLES; ++i) {
 		for (int j = 0; j < 3; ++j) {
 			switch (j) {
-			case 0:	arrayParticles[i * 3 + j] = -OD + (i % 14)*OD;
-				arrayStructParticles[i].P.x = -OD + (i % 14)*OD;
+			case 0:	arrayParticles[i * 3 + j] = -2.5+(i % 14)*OD;
+				arrayStructParticles[i].P.x = -2.5+(i % 14)*OD;
 				if (i % 14 == 0)
 					++localZ;
 				break;
-			case 1:arrayParticles[i * 3 + j] = 5;
-				arrayStructParticles[i].P.y = 5;
+			case 1:arrayParticles[i * 3 + j] = 9;
+				arrayStructParticles[i].P.y = 9;
 				break;
-			case 2:arrayParticles[i * 3 + j] = -OD + (localZ)*OD;
-				arrayStructParticles[i].P.z = -OD + (localZ)*OD;;
+			case 2:arrayParticles[i * 3 + j] = -2.5+(localZ)*OD;
+				arrayStructParticles[i].P.z = -2.5+(localZ)*OD;;
 				break;
 			}
 		}
@@ -502,12 +454,27 @@ void PhysicsInit() {
 	ClothMesh::updateClothMesh(arrayParticles);
 }
 
+static float timer = GUIvars::ResetTime;
+
 void PhysicsUpdate(float dt) {
-	for (int i = 0; i < 7; ++i) {
-		FuncionUpdate(dt / 7);
-		Structural();
-		Shear();
-		Bending();
+	if (GUIvars::PlaySimulation) {
+		for (int i = 0; i < 7; ++i) {
+			FuncionUpdate(dt / 7);
+			Structural();
+			Shear();
+			Bending();
+			timer -= dt / 7;
+			if (timer <= 0) {
+				PhysicsInit();
+				timer = GUIvars::ResetTime;
+				//set sphere to random pos and rad
+				GUIvars::SphPosition[0] = RandomFloat(-5, 5);
+				GUIvars::SphPosition[1] = RandomFloat(-0, 10);
+				GUIvars::SphPosition[2] = RandomFloat(-5, 5);
+				Sphere::cleanupSphere();
+				Sphere::setupSphere();
+			}
+		}
 	}
 
 	ClothMesh::updateClothMesh(arrayParticles);

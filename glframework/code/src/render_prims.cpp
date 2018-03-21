@@ -4,9 +4,6 @@
 
 
 namespace GUIvars {
-	extern float CapposicioinicialA[3];
-	extern float CapposicioinicialB[3];
-
 	extern bool PlaySimulation;
 	extern int emitRate;
 

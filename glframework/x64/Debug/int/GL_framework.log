@@ -1,0 +1,9 @@
+﻿  physics.cpp
+c:\users\alexbalasteguigaya\documents\aa3_mecànica\glframework\code\src\physics.cpp(438): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\alexbalasteguigaya\documents\aa3_mecànica\glframework\code\src\physics.cpp(439): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\alexbalasteguigaya\documents\aa3_mecànica\glframework\code\src\physics.cpp(446): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\alexbalasteguigaya\documents\aa3_mecànica\glframework\code\src\physics.cpp(447): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  GL_framework.vcxproj -> C:\Users\alexbalasteguigaya\Documents\AA3_Mecànica\glframework\x64\Debug\GL_framework.exe
+  GL_framework.vcxproj -> C:\Users\alexbalasteguigaya\Documents\AA3_Mecànica\glframework\x64\Debug\GL_framework.pdb (Partial PDB)
+  0 File(s) copied
+  0 File(s) copied
