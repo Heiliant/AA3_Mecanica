@@ -14,10 +14,28 @@ float gravity = -9.85f;
 namespace GUIvars {
 	bool show_test_window = false;
 	bool PlaySimulation = true;
-	bool show = true;
-	static float elasticityCof = 0.5;
-	static float frictionCof = 0.5;
+	bool show = false;
+	float ResetTime = 5;
+	float GX = 0.0f;
+	float GY = -9.81f;
+	float GZ = 0.0f;
+	float Gravity[3] = { GX, GY, GZ };
+	float stretch_ke = 0;
+	float stretch_kd = 0;
+	float K_stretch[2] = { stretch_ke, stretch_kd };
+	float shear_ke = 0;
+	float shear_kd = 0;
+	float K_shear[2] = { shear_ke, shear_kd };
+	float bend_ke = 0;
+	float bend_kd = 0;
+	float K_bend[2] = { bend_ke, bend_kd };
+	float ParticleLinl = 0;
+	bool useCollisions = true;
 	bool useSphereCollider = true;
+	float eCo = 0.5;
+	float fCo = 0.5;
+
+
 	float SphX = 1.0f;
 	float SphY = 1.0f;
 	float SphZ = 1.0f;
@@ -83,26 +101,94 @@ namespace Sphere {
 
 bool show_test_window = false;
 void GUI() {
-	bool show = true;
-	ImGui::Begin("Physics Parameters", &show, 0);
 
-	// Do your GUI code here....
-	{	
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
-		
-	}
-	// .........................
-	
-	ImGui::End();
+	ImGui::Begin("Physics Parameters", &GUIvars::show, 0);
 
-	// Example code -- ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-	if(show_test_window) {
-		ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
-		ImGui::ShowTestWindow(&show_test_window);
+	{
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
+		ImGui::Checkbox("Play Simulation", &GUIvars::PlaySimulation);//CHECKBOX
+		if (ImGui::Button("Reset Simulation")) {
+		}
+		ImGui::InputFloat("Reset time", &GUIvars::ResetTime);
+		ImGui::InputFloat3("Gravity acceleration", GUIvars::Gravity);
+
+		if (ImGui::TreeNode("Spring Parameters")) {     //FORCES
+			ImGui::InputFloat2("K_stretch", GUIvars::K_stretch);
+			ImGui::InputFloat2("K_shear", GUIvars::K_shear);
+			ImGui::InputFloat2("K_bend", GUIvars::K_bend);
+			ImGui::InputFloat("Particle linl", &GUIvars::ParticleLinl);
+			ImGui::TreePop();
+		}
+
+		if (ImGui::TreeNode("Collisions")) {     //FORCES
+			ImGui::Checkbox("Use Collisions", &GUIvars::useCollisions);
+			ImGui::Checkbox("Use Sphere Collisions", &GUIvars::useSphereCollider);
+			ImGui::TreePop();
+			ImGui::InputFloat("Elasticity Coef", &GUIvars::eCo);
+			ImGui::InputFloat("Friction Coef", &GUIvars::fCo);
+		}
+
+		//	if (ImGui::TreeNode("Emitter")) {
+		//		ImGui::Text("Emitter Rate");
+		//		ImGui::InputInt("Emitter Rate", &GUIvars::emitRate);
+		//		//if (PlaySimulation) {		comprobacio de si cambia, spoiler: si que ho fa
+		//		//}
+		//		ImGui::InputInt("Particle Life", &GUIvars::particleLife);
+		//		//if (PlaySimulation) {   comprobacio de si cambia, spoiler: si que ho fa
+		//		//}
+
+		//		ImGui::RadioButton("Fountain", &GUIvars::modo, 0); ImGui::SameLine(); ImGui::RadioButton("Cascade", &GUIvars::modo, 1); //FOUNTAIN OR CASCADE
+		//		if (GUIvars::modo == 0) {
+		//			ImGui::Text("Fountain Pos"); //BOX (VEC3) 
+		//			ImGui::InputFloat3("Fountain Pos", GUIvars::Fposicioinicial);  //Tots els parametres de InputFloat3 o Input Int t els canvia desde la UI
+		//			if (ImGui::InputFloat3("Fountain Dir", GUIvars::Fvelocitatinicial))
+		//				ImGui::InputFloat("Fountain Angle", &GUIvars::FountainAngle);
+		//		}
+		//		if (GUIvars::modo == 1) {
+		//			ImGui::Text("Cascade Pos"); //BOX (VEC3) 
+		//			ImGui::InputFloat3("Cascade PosA", GUIvars::CposicioinicialA);
+		//			ImGui::InputFloat3("Cascade PosB", GUIvars::CposicioinicialB);
+		//			ImGui::InputFloat3("Cascade Velocity", GUIvars::Cvelocitatinicial);
+		//		}
+		//		ImGui::InputFloat("Fountain Angle", &GUIvars::FountainAngle);
+		//		ImGui::TreePop();
+		//	}
+
+
+		//	if (ImGui::TreeNode("Elasticity & Friction")) {			//ELASTICITY &FRICTION
+		//		ImGui::InputFloat("Elasticity Coefficient", &GUIvars::elasticityCof);
+		//		ImGui::InputFloat("Friction Coefficient", &GUIvars::frictionCof);
+		//		ImGui::TreePop();
+		//	}
+
+		//	if (ImGui::TreeNode("Colliders")) {						//COLLIDERS
+		//		ImGui::Checkbox("Use Sphere Collider", &GUIvars::renderSphere);
+
+		//		if (ImGui::InputFloat3("Sphere Position", GUIvars::SpherePos) || ImGui::InputFloat("Sphere Radius", &GUIvars::SphereRad)) {
+		//			Sphere::setupSphere({ GUIvars::SpherePos[0], GUIvars::SpherePos[1], GUIvars::SpherePos[2] }, GUIvars::SphereRad);
+		//		}
+		//		ImGui::Checkbox("Use Capsule Collider", &GUIvars::renderCapsule);
+		//		if (ImGui::InputFloat3("Capsule Position A", GUIvars::CapposicioinicialA) || ImGui::InputFloat3("Capsule Position B", GUIvars::CapposicioinicialB) || ImGui::InputFloat("Capsule Radius", &GUIvars::CapRadius)) {
+		//			Capsule::setupCapsule({ GUIvars::CapposicioinicialA[0], GUIvars::CapposicioinicialA[1], GUIvars::CapposicioinicialA[2] },
+		//			{ GUIvars::CapposicioinicialB[0], GUIvars::CapposicioinicialB[1] ,GUIvars::CapposicioinicialB[2] }, GUIvars::CapRadius);
+		//		}
+
+		//		ImGui::TreePop();
+		//	}
+
+		//	if (ImGui::TreeNode("Forces")) {     //FORCES
+		//		ImGui::Checkbox("Use Gravity", &GUIvars::useGravity);
+		//		ImGui::InputFloat3("Gravity Accel", GUIvars::Gacceleration);
+		//		ImGui::TreePop();
+		//	}
+		//}
+		//// .........................
+
+		ImGui::End();
 	}
 }
 
-v3 spring(particle P1, particle P2, float originalD=OD) {
+v3 spring(particle P1, particle P2, float originalD = OD) {
 	v3 Vector12 = P1.P - P2.P;
 	return -(ke*(glm::length(Vector12) - originalD) + kd*glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
 }
@@ -118,11 +204,12 @@ bool hasCollided(particle particula, glm::vec3 normal, float d) {
 }
 
 void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
+	normal = glm::normalize(normal);
 	float d = planeD(normal, planeSpot);
 
-	particula.Po = particula.Po - (1 + GUIvars::elasticityCof) * (glm::dot(normal, particula.Po) + d)*normal;
+	particula.Po = particula.Po - (1 + GUIvars::eCo) * (glm::dot(normal, particula.Po) + d)*normal;
 
-	particula.P = particula.P - (1+ GUIvars::elasticityCof) * (glm::dot(normal, particula.P) + d)*normal;
+	particula.P = particula.P - (1 + GUIvars::eCo) * (glm::dot(normal, particula.P) + d)*normal;
 
 	//particula.V = particula.V - (1+ GUIvars::elasticityCof) * glm::dot(normal, particula.V)*normal;
 
@@ -158,9 +245,13 @@ glm::vec3 colisionSpot(particle particula, glm::vec3 SpherePosition, float Sphra
 	a = glm::pow((particula.Po.x - SpherePosition.x), 2) + pow((particula.Po.y - SpherePosition.y), 2) + pow((particula.Po.z - SpherePosition.z), 2) -
 		glm::pow(Sphradius, 2) + 2 * ((particula.Po.x - SpherePosition.x) + (particula.Po.y - SpherePosition.y) + (particula.Po.z - SpherePosition.z));
 
+	double cuerpo = glm::pow(b, 2) - 4 * a*c;
 
-	float alphaOne = (-b + glm::sqrt(glm::pow(b, 2) - 4 * (a*c))) / (2 * a);
-	float alphaTwo = (-b - glm::sqrt(glm::pow(b, 2) - 4 * (a*c))) / (2 * a);
+	if (cuerpo<0) {
+		cuerpo *= -1;
+	}
+	double alphaOne = (-b + glm::sqrt(cuerpo)) / (2 * a);
+	double alphaTwo = (-b - glm::sqrt(cuerpo)) / (2 * a);
 
 	if (alphaOne<alphaTwo) {
 		return
@@ -212,6 +303,26 @@ bool hasCollidedSphere(particle particula, glm::vec3 SpherePosition, float Sphra
 	return (glm::distance(particula.P, SpherePosition) - Sphradius) <= 0;
 }
 
+void ColisionesCubo(int i) {
+	int aux2 = 0;
+	for (glm::vec3 a : planes) {
+		if (hasCollided(arrayStructParticles[i], a, planeD(a, planePoint[aux2]))) {
+			rebote(arrayStructParticles[i], a, planePoint[aux2]);
+		}
+		++aux2;
+	}
+}
+
+void ColisionesEsfera(int i) {
+	if (GUIvars::renderSphere) {
+		if (hasCollidedSphere(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius)) {
+			glm::vec3 collisionSpot = colisionSpot(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius);
+
+			glm::vec3 planeNormal = (collisionSpot - glm::vec3{ GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] });
+			rebote(arrayStructParticles[i], planeNormal, collisionSpot);
+		}
+	}
+}
 
 
 void FuncionUpdate(float dt) {
@@ -237,29 +348,18 @@ void FuncionUpdate(float dt) {
 					arrayStructParticles[i].V.z = (arrayStructParticles[i].P.z - arrayStructParticles[i].Po.z) / dt;
 					break;
 				}
+
 			}
 			arrayStructParticles[i].Po = aux;
 		}
-		//Colisiones
-		int aux2 = 0;
-		for (glm::vec3 a : planes) {
-			if (hasCollided(arrayStructParticles[i], a, planeD(a, planePoint[aux2]))) {
-				rebote(arrayStructParticles[i], a, planePoint[aux2]);
-			}
-			++aux2;
-		}		
-		if (GUIvars::renderSphere) {
-			//Colisión esfera.
-			if (hasCollidedSphere(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius)) {
-				glm::vec3 collisionSpot = colisionSpot(arrayStructParticles[i], { GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] }, GUIvars::SphRadius);
-
-				glm::vec3 planeNormal = (collisionSpot - glm::vec3{ GUIvars::SphPosition[0], GUIvars::SphPosition[1], GUIvars::SphPosition[2] });
-				rebote(arrayStructParticles[i], planeNormal, collisionSpot);
-			}
-		}
+		ColisionesCubo(i);
+		ColisionesEsfera(i);
+		
 	}
 
 }
+
+
 
 void Structural() {
 	////////////////////////////////////////////////////STRUCTURAL////////////////////////////////////////////////////
@@ -383,7 +483,7 @@ void PhysicsInit() {
 	for (int i = 0; i < NPARTICLES; ++i) {
 		for (int j = 0; j < 3; ++j) {
 			switch (j) {
-			case 0:	arrayParticles[i * 3 + j] = -OD +(i%14)*OD;
+			case 0:	arrayParticles[i * 3 + j] = -OD + (i % 14)*OD;
 				arrayStructParticles[i].P.x = -OD + (i % 14)*OD;
 				if (i % 14 == 0)
 					++localZ;
@@ -391,7 +491,7 @@ void PhysicsInit() {
 			case 1:arrayParticles[i * 3 + j] = 5;
 				arrayStructParticles[i].P.y = 5;
 				break;
-			case 2:arrayParticles[i * 3 + j] = -OD +(localZ)*OD;
+			case 2:arrayParticles[i * 3 + j] = -OD + (localZ)*OD;
 				arrayStructParticles[i].P.z = -OD + (localZ)*OD;;
 				break;
 			}
@@ -404,11 +504,10 @@ void PhysicsInit() {
 
 void PhysicsUpdate(float dt) {
 	for (int i = 0; i < 7; ++i) {
-		FuncionUpdate(dt/7);
+		FuncionUpdate(dt / 7);
 		Structural();
 		Shear();
 		Bending();
-
 	}
 
 	ClothMesh::updateClothMesh(arrayParticles);
