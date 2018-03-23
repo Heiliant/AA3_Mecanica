@@ -6,10 +6,11 @@
 #define NPARTICLES 252
 const float quadScale = 0.5f;
 using v3 = glm::vec3;
-float ke = 1000;
-float kd = 17;
-float OD = 0.5f;
-float gravity = -9.85f;
+extern bool renderSphere;
+//float ke = 1000;
+//float kd = 17;
+//float OD = 0.5f;
+//float gravity = -9.85f;
 
 namespace GUIvars {
 	bool show_test_window = false;
@@ -20,16 +21,16 @@ namespace GUIvars {
 	float GY = -9.81f;
 	float GZ = 0.0f;
 	float Gravity[3] = { GX, GY, GZ };
-	float stretch_ke = 0;
-	float stretch_kd = 0;
+	float stretch_ke = 1000;
+	float stretch_kd = 17;
 	float K_stretch[2] = { stretch_ke, stretch_kd };
-	float shear_ke = 0;
-	float shear_kd = 0;
+	float shear_ke = 1000;
+	float shear_kd = 17;
 	float K_shear[2] = { shear_ke, shear_kd };
-	float bend_ke = 0;
-	float bend_kd = 0;
+	float bend_ke = 1000;
+	float bend_kd = 17;
 	float K_bend[2] = { bend_ke, bend_kd };
-	float ParticleLinl = 0;
+	float ParticleLinl = 0.5;
 	bool useCollisions = true;
 	bool useSphereCollider = true;
 	float eCo = 0.5;
@@ -135,9 +136,19 @@ void GUI() {
 	}
 }
 
-v3 spring(particle P1, particle P2, float originalD = OD) {
+v3 spring_stretch(particle P1, particle P2, float originalD = GUIvars::ParticleLinl) {
 	v3 Vector12 = P1.P - P2.P;
-	return -(ke*(glm::length(Vector12) - originalD) + kd*glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
+	return -(GUIvars::K_stretch[0]*(glm::length(Vector12) - originalD) + GUIvars::K_stretch[1] * glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
+}
+
+v3 spring_shear(particle P1, particle P2, float originalD = GUIvars::ParticleLinl) {
+	v3 Vector12 = P1.P - P2.P;
+	return -(GUIvars::K_shear[0] * (glm::length(Vector12) - originalD) + GUIvars::K_shear[1] * glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
+}
+
+v3 spring_bend(particle P1, particle P2, float originalD = GUIvars::ParticleLinl) {
+	v3 Vector12 = P1.P - P2.P;
+	return -(GUIvars::K_bend[0] * (glm::length(Vector12) - originalD) + GUIvars::K_bend[1] * glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
 }
 
 
@@ -284,8 +295,12 @@ void FuncionUpdate(float dt) {
 			}
 			arrayStructParticles[i].Po = aux;
 		}
-		ColisionesCubo(i);
-		ColisionesEsfera(i);
+		if (GUIvars::useCollisions) {
+			ColisionesCubo(i);
+		}
+		if (GUIvars::useSphereCollider) {
+			ColisionesEsfera(i);
+		}
 		
 	}
 
@@ -296,39 +311,40 @@ void Structural() {
 	for (int i = 0; i < NPARTICLES; ++i) {
 		if (i < 14) {
 			if (i == 0) {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i + 1]) + spring(arrayStructParticles[i], arrayStructParticles[i + 14]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1]) +
+					spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]);
 			}
 			else if (i == 13) {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 1]) + spring(arrayStructParticles[i], arrayStructParticles[i + 14]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]);
 			}
 			else {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i + 14]) + spring(arrayStructParticles[i], arrayStructParticles[i + 1])
-					+ spring(arrayStructParticles[i], arrayStructParticles[i - 1]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1])
+					+ spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1]);
 			}
 		}
 		else if (i >= (NPARTICLES - 14)) {
 			if (i == NPARTICLES - 14) {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i + 1]) + spring(arrayStructParticles[i], arrayStructParticles[i - 14]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]);
 			}
 			else if (i == NPARTICLES - 1) {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 1]) + spring(arrayStructParticles[i], arrayStructParticles[i - 14]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]);
 			}
 			else {
-				arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring(arrayStructParticles[i], arrayStructParticles[i + 1])
-					+ spring(arrayStructParticles[i], arrayStructParticles[i - 1]);
+				arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1])
+					+ spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1]);
 			}
 		}
 		else if (i % 14 == 0) {
-			arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring(arrayStructParticles[i], arrayStructParticles[i + 1])
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 14]);
+			arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1])
+				+ spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]);
 		}
 		else if (i % 14 == 13) {
-			arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring(arrayStructParticles[i], arrayStructParticles[i - 1])
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 14]);
+			arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1])
+				+ spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]);
 		}
 		else {
-			arrayStructParticles[i].F = spring(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring(arrayStructParticles[i], arrayStructParticles[i + 1])
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 14]) + spring(arrayStructParticles[i], arrayStructParticles[i - 1]);
+			arrayStructParticles[i].F = spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 1])
+				+ spring_stretch(arrayStructParticles[i], arrayStructParticles[i + 14]) + spring_stretch(arrayStructParticles[i], arrayStructParticles[i - 1]);
 		}
 	}
 }
@@ -338,41 +354,41 @@ void Shear() {
 	for (int i = 0; i < NPARTICLES; ++i) {
 		if (i < 14) {
 			if (i == 0) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 			else if (i == 13) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-					+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) + 
+												spring_shear(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 		}
 		else if (i >= (NPARTICLES - 14)) {
 			if (i == NPARTICLES - 14) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 			else if (i == NPARTICLES - 1) {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 			else {
-				arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-					+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+				arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+												spring_shear(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 			}
 		}
 		else if (i % 14 == 0) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+											spring_shear(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 		}
 		else if (i % 14 == 13) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+											spring_shear(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 		}
 		else {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)))
-				+ spring(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(OD, 2) + glm::pow(OD, 2)));
+			arrayStructParticles[i].F +=	spring_shear(arrayStructParticles[i], arrayStructParticles[i + 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+											spring_shear(arrayStructParticles[i], arrayStructParticles[i - 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+											spring_shear(arrayStructParticles[i], arrayStructParticles[i - 13], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2))) +
+											spring_shear(arrayStructParticles[i], arrayStructParticles[i + 15], glm::sqrt(glm::pow(GUIvars::ParticleLinl, 2) + glm::pow(GUIvars::ParticleLinl, 2)));
 		}
 	}
 }
@@ -381,25 +397,27 @@ void Bending() {
 	////////////////////////////////////////////////////BENDING////////////////////////////////////////////////////
 	for (int i = 0; i < NPARTICLES; ++i) {
 		if (i % 14 == 0 || i % 14 == 1) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * GUIvars::ParticleLinl);
 		}
 		else if (i % 14 == 13 || i % 14 == 12) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * GUIvars::ParticleLinl);
 		}
 		else {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i + 2], 2 * GUIvars::ParticleLinl) +
+											spring_bend(arrayStructParticles[i], arrayStructParticles[i - 2], 2 * GUIvars::ParticleLinl);
 		}
 	}
 
 	for (int i = 0; i < NPARTICLES; ++i) {
 		if (static_cast<int>(i / 14) == 0 || static_cast<int>(i / 14) == 1) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * GUIvars::ParticleLinl);
 		}
 		else if (static_cast<int>(i / 14) == 17 || static_cast<int>(i / 14) == 16) {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * GUIvars::ParticleLinl);
 		}
 		else {
-			arrayStructParticles[i].F += spring(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * OD) + spring(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * OD);
+			arrayStructParticles[i].F +=	spring_bend(arrayStructParticles[i], arrayStructParticles[i + 28], 2 * GUIvars::ParticleLinl) + 
+											spring_bend(arrayStructParticles[i], arrayStructParticles[i - 28], 2 * GUIvars::ParticleLinl);
 		}
 		if (i % 14 == 13) {
 			std::cout << std::endl;
@@ -416,20 +434,27 @@ float RandomFloat(float a, float b) {
 }
 
 void PhysicsInit() {
-	int localZ = -5;
+	float localZ = -5.5;
+	float XPosition = -3.5;
+	float YPosition = 9.5;
+	float ZPosition = -2.5;
+
 	for (int i = 0; i < NPARTICLES; ++i) {
 		for (int j = 0; j < 3; ++j) {
 			switch (j) {
-			case 0:	arrayParticles[i * 3 + j] = -2.5+(i % 14)*OD;
-				arrayStructParticles[i].P.x = -2.5+(i % 14)*OD;
+			case 0:	
+				arrayParticles[i * 3 + j] = XPosition +(i % 14)*GUIvars::ParticleLinl;
+				arrayStructParticles[i].P.x = XPosition +(i % 14)*GUIvars::ParticleLinl;
 				if (i % 14 == 0)
 					++localZ;
 				break;
-			case 1:arrayParticles[i * 3 + j] = 9;
-				arrayStructParticles[i].P.y = 9;
+			case 1:
+				arrayParticles[i * 3 + j] = YPosition;
+				arrayStructParticles[i].P.y = YPosition;
 				break;
-			case 2:arrayParticles[i * 3 + j] = -2.5+(localZ)*OD;
-				arrayStructParticles[i].P.z = -2.5+(localZ)*OD;;
+			case 2:
+				arrayParticles[i * 3 + j] = ZPosition +(localZ)*GUIvars::ParticleLinl;
+				arrayStructParticles[i].P.z = ZPosition +(localZ)*GUIvars::ParticleLinl;
 				break;
 			}
 		}
@@ -443,6 +468,12 @@ static float timer = GUIvars::ResetTime;
 
 void PhysicsUpdate(float dt) {
 	if (GUIvars::PlaySimulation) {
+		if (GUIvars::useSphereCollider) {
+			renderSphere = true;
+		}
+		else {
+			renderSphere = false;
+		}
 		for (int i = 0; i < 7; ++i) {
 			FuncionUpdate(dt / 7);
 			Structural();
@@ -452,12 +483,12 @@ void PhysicsUpdate(float dt) {
 			if (timer <= 0) {
 				PhysicsInit();
 				timer = GUIvars::ResetTime;
-				//set sphere to random pos and rad
-				GUIvars::SphPosition[0] = RandomFloat(-5, 5);
-				GUIvars::SphPosition[1] = RandomFloat(-0, 10);
-				GUIvars::SphPosition[2] = RandomFloat(-5, 5);
-				Sphere::cleanupSphere();
+				//set sphere to random pos
+				GUIvars::SphPosition[0] = RandomFloat(-4, 4);
+				GUIvars::SphPosition[1] = RandomFloat(1, 8.5);
+				GUIvars::SphPosition[2] = RandomFloat(-4, 4);
 				Sphere::setupSphere();
+				Sphere::cleanupSphere();
 			}
 		}
 	}
