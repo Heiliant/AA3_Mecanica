@@ -13,18 +13,18 @@ namespace GUIvars {
 	extern float SphRadius;
 
 	bool renderSphere = true;
-	bool renderCapsule = true;
-	bool renderParticles = true;
-	bool renderCloth = false;
+	bool renderCapsule = false;
+	bool renderParticles = false;
+	bool renderCloth = true;
 	bool renderCube = false;
 }
 
 // Boolean variables allow to show/hide the primitives
-bool renderSphere = true;
-bool renderCapsule = false;
-bool renderParticles = false;
-bool renderCloth = true;
-bool renderCube = false;
+//bool renderSphere = true;
+//bool renderCapsule = false;
+//bool renderParticles = false;
+//bool renderCloth = true;
+//bool renderCube = false;
 
 
 namespace Sphere {
@@ -76,12 +76,12 @@ void cleanupPrims() {
 }
 
 void renderPrims() {
-	if (renderSphere)
+	if (GUIvars::renderSphere)
 		Sphere::drawSphere();
-	if (renderCapsule)
+	if (GUIvars::renderCapsule)
 		Capsule::drawCapsule();
 
-	if (renderParticles) {
+	if (GUIvars::renderParticles) {
 		// You may need to rethink this piece of code...
 		int startDrawingFromParticle = 0;
 		int numParticlesToDraw = LilSpheres::maxParticles;
@@ -89,9 +89,9 @@ void renderPrims() {
 		// .............................................
 	}
 	
-	if (renderCloth)
+	if (GUIvars::renderCloth)
 		ClothMesh::drawClothMesh();
 
-	if (renderCube)
+	if (GUIvars::renderCube)
 		Cube::drawCube();
 }

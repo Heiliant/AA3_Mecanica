@@ -6,7 +6,6 @@
 #define NPARTICLES 252
 const float quadScale = 0.5f;
 using v3 = glm::vec3;
-extern bool renderSphere;
 //float ke = 1000;
 //float kd = 17;
 //float OD = 0.5f;
@@ -469,10 +468,10 @@ static float timer = GUIvars::ResetTime;
 void PhysicsUpdate(float dt) {
 	if (GUIvars::PlaySimulation) {
 		if (GUIvars::useSphereCollider) {
-			renderSphere = true;
+			GUIvars::renderSphere = true;
 		}
 		else {
-			renderSphere = false;
+			GUIvars::renderSphere = false;
 		}
 		for (int i = 0; i < 7; ++i) {
 			FuncionUpdate(dt / 7);
@@ -487,8 +486,8 @@ void PhysicsUpdate(float dt) {
 				GUIvars::SphPosition[0] = RandomFloat(-4, 4);
 				GUIvars::SphPosition[1] = RandomFloat(1, 8.5);
 				GUIvars::SphPosition[2] = RandomFloat(-4, 4);
-				Sphere::setupSphere();
 				Sphere::cleanupSphere();
+				Sphere::setupSphere();
 			}
 		}
 	}
