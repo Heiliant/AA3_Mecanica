@@ -21,13 +21,13 @@ namespace GUIvars {
 	float GZ = 0.0f;
 	float Gravity[3] = { GX, GY, GZ };
 	float stretch_ke = 1000;
-	float stretch_kd = 17;
+	float stretch_kd = 40;
 	float K_stretch[2] = { stretch_ke, stretch_kd };
 	float shear_ke = 1000;
-	float shear_kd = 17;
+	float shear_kd = 40;
 	float K_shear[2] = { shear_ke, shear_kd };
 	float bend_ke = 1000;
-	float bend_kd = 17;
+	float bend_kd = 40;
 	float K_bend[2] = { bend_ke, bend_kd };
 	float ParticleLinl = 0.5;
 	bool useCollisions = true;
@@ -137,7 +137,7 @@ void GUI() {
 
 v3 spring_stretch(particle P1, particle P2, float originalD = GUIvars::ParticleLinl) {
 	v3 Vector12 = P1.P - P2.P;
-	return -(GUIvars::K_stretch[0]*(glm::length(Vector12) - originalD) + GUIvars::K_stretch[1] * glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
+	return -(GUIvars::K_stretch[0] * (glm::length(Vector12) - originalD) + GUIvars::K_stretch[1] * glm::dot((P1.V - P2.V), glm::normalize(Vector12)))*glm::normalize(Vector12);
 }
 
 v3 spring_shear(particle P1, particle P2, float originalD = GUIvars::ParticleLinl) {
@@ -164,16 +164,16 @@ void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 	normal = glm::normalize(normal);
 	float d = planeD(normal, planeSpot);
 
-	particula.Po = particula.Po - (1 + GUIvars::eCo) * (glm::dot(normal, particula.Po) + d)*normal;
+	particula.Po -= (1 + GUIvars::eCo) * (glm::dot(normal, particula.Po) + d)*normal;
 
-	particula.P = particula.P - (1 + GUIvars::eCo) * (glm::dot(normal, particula.P) + d)*normal;
+	particula.P -= (1 + GUIvars::eCo) * (glm::dot(normal, particula.P) + d)*normal;
 
-	//particula.V = particula.V - (1+ GUIvars::elasticityCof) * glm::dot(normal, particula.V)*normal;
+	//particula.V = particula.V - (1+ GUIvars::eCo) * glm::dot(normal, particula.V)*normal;
 
-	//glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
-	//glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
+	glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
+	glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
 
-	//particula.V -= GUIvars::frictionCof*velocidadTangencial;
+	particula.V -= GUIvars::fCo*velocidadTangencial;
 }
 
 
@@ -466,6 +466,7 @@ void PhysicsInit() {
 static float timer = GUIvars::ResetTime;
 
 void PhysicsUpdate(float dt) {
+	float CalcXFrame = 15;
 	if (GUIvars::PlaySimulation) {
 		if (GUIvars::useSphereCollider) {
 			GUIvars::renderSphere = true;
@@ -473,12 +474,12 @@ void PhysicsUpdate(float dt) {
 		else {
 			GUIvars::renderSphere = false;
 		}
-		for (int i = 0; i < 7; ++i) {
-			FuncionUpdate(dt / 7);
+		for (int i = 0; i < CalcXFrame; ++i) {
+			FuncionUpdate(dt / CalcXFrame);
 			Structural();
 			Shear();
 			Bending();
-			timer -= dt / 7;
+			timer -= dt / CalcXFrame;
 			if (timer <= 0) {
 				PhysicsInit();
 				timer = GUIvars::ResetTime;
