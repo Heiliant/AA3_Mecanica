@@ -170,10 +170,11 @@ void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 
 	particula.V = particula.V - (1+ GUIvars::eCo) * glm::dot(normal, particula.V)*normal;
 
-	glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
+	glm::vec3 velocidadNormal = glm::dot(normal, particula.Vo)*normal;
 	glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
 
 	particula.V -= GUIvars::fCo*velocidadTangencial;
+	std::cout << particula.Vo.x << " " << particula.Vo.y << " " << particula.Vo.z << " " << std::endl;
 }
 
 
@@ -270,6 +271,8 @@ void ColisionesEsfera(int i) {
 void FuncionUpdate(float dt) {
 	for (int i = 1; i < NPARTICLES; ++i) {
 		v3 aux = arrayStructParticles[i].P;
+		arrayStructParticles[i].Vo = arrayStructParticles[i].V;
+		arrayStructParticles[i].V = (arrayStructParticles[i].P - arrayStructParticles[i].Po) / dt;
 		if (i != 13) {
 			for (int j = 0; j < 3; ++j) {
 				arrayStructParticles[i].F += v3{ MASS*GUIvars::Gravity[0], MASS*GUIvars::Gravity[1], MASS*GUIvars::Gravity[2] };
