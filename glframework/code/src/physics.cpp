@@ -21,13 +21,13 @@ namespace GUIvars {
 	float GZ = 0.0f;
 	float Gravity[3] = { GX, GY, GZ };
 	float stretch_ke = 1000;
-	float stretch_kd = 40;
+	float stretch_kd = 10;
 	float K_stretch[2] = { stretch_ke, stretch_kd };
 	float shear_ke = 1000;
-	float shear_kd = 40;
+	float shear_kd = 10;
 	float K_shear[2] = { shear_ke, shear_kd };
 	float bend_ke = 1000;
-	float bend_kd = 40;
+	float bend_kd = 10;
 	float K_bend[2] = { bend_ke, bend_kd };
 	float ParticleLinl = 0.5;
 	bool useCollisions = true;
@@ -168,7 +168,7 @@ void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 
 	particula.P -= (1 + GUIvars::eCo) * (glm::dot(normal, particula.P) + d)*normal;
 
-	//particula.V = particula.V - (1+ GUIvars::eCo) * glm::dot(normal, particula.V)*normal;
+	particula.V = particula.V - (1+ GUIvars::eCo) * glm::dot(normal, particula.V)*normal;
 
 	glm::vec3 velocidadNormal = (normal*particula.Vo)*normal;
 	glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
@@ -466,7 +466,7 @@ void PhysicsInit() {
 static float timer = GUIvars::ResetTime;
 
 void PhysicsUpdate(float dt) {
-	float CalcXFrame = 15;
+	float CalcXFrame = 10;
 	if (GUIvars::PlaySimulation) {
 		if (GUIvars::useSphereCollider) {
 			GUIvars::renderSphere = true;
