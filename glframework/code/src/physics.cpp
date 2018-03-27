@@ -174,7 +174,6 @@ void rebote(particle &particula, glm::vec3 normal, glm::vec3 planeSpot) {
 	glm::vec3 velocidadTangencial = particula.Vo - velocidadNormal;
 
 	particula.V -= GUIvars::fCo*velocidadTangencial;
-	std::cout << particula.Vo.x << " " << particula.Vo.y << " " << particula.Vo.z << " " << std::endl;
 }
 
 
